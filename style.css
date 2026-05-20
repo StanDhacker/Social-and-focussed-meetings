@@ -223,11 +223,12 @@ body {
 /* Team Markers */
 .team-marker {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+  background-color: var(--color-transactional);
+  box-shadow: 0 0 10px rgba(14, 165, 228, 0.4);
+  border: 1.5px solid #ffffff;
   transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
   opacity: 0;
@@ -235,7 +236,7 @@ body {
 }
 
 .team-marker.active {
-  opacity: 0.5;
+  opacity: 0.85;
   transform: translate(-50%, -50%) scale(1);
 }
 
@@ -489,4 +490,89 @@ body {
 .toast-alert.show {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* ==========================================================================
+   Overview Modal Panel
+   ========================================================================== */
+.overview-card {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.overview-average-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.average-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.average-values {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-synergy);
+}
+
+.scores-list-container {
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+  padding-right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.scores-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+.scores-list-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+.scores-list-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.score-item.user-item {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.score-person {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.score-values {
+  font-family: monospace;
+  color: var(--text-secondary);
 }

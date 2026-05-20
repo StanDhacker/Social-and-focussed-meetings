@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isLocked = false;
   let isSubmitted = false;
   let isOverviewRevealed = false;
+  let currentRatings = [];
 
   // DOM Elements
   const ratingGrid = document.getElementById('ratingGrid');
@@ -33,6 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const setupOverlay = document.getElementById('setupOverlay');
   const btnCreateSession = document.getElementById('btnCreateSession');
   const toastAlert = document.getElementById('toastAlert');
+
+  // Overview DOM Elements
+  const overviewOverlay = document.getElementById('overviewOverlay');
+  const overviewAverage = document.getElementById('overviewAverage');
+  const scoresList = document.getElementById('scoresList');
+  const btnBackToGrid = document.getElementById('btnBackToGrid');
+  const btnRefreshOverview = document.getElementById('btnRefreshOverview');
 
   // Prevent dock clicks from placing markers on grid
   controlDock.addEventListener('click', (e) => {
@@ -111,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       userMarker.classList.add('active');
 
       gridTooltip.style.opacity = '0';
-      btnAction.textContent = isOverviewRevealed ? 'Refresh' : 'Show Overview';
+      btnAction.textContent = 'Show Overview';
       btnAction.removeAttribute('disabled');
 
       // Fetch and overlay collective ratings
@@ -161,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render database submissions on grid
   function renderRatings(ratingsList) {
     teamMarkersContainer.innerHTML = '';
+    currentRatings = ratingsList;
 
     if (ratingsList.length === 0) {
       summaryResults.textContent = 'You are the first to rate. Share the link!';
@@ -186,47 +195,51 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 50 + index * 80);
     });
 
-    // Calculate statistical averages (including User's locked rating)
-    const allX = ratingsList.map(r => r.focus_score);
-    const allY = ratingsList.map(r => r.social_score);
+    // Always hide average marker on grid (moved to text overview modal)
+    averageMarker.classList.remove('active');
+
+    // Only show user details in the dock
+    summaryResults.innerHTML = `
+      <div class="summary-row">
+        <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
+      </div>
+    `;
+
+    // If the overview list is currently visible, refresh its text content dynamically
+    if (overviewOverlay.style.display === 'flex') {
+      populateOverview();
+    }
+  }
+
+  // Populate Text-based Overview Overlay Panel
+  function populateOverview() {
+    if (currentRatings.length === 0) return;
+
+    // Calculate statistical averages
+    const allX = currentRatings.map(r => r.focus_score);
+    const allY = currentRatings.map(r => r.social_score);
 
     const avgX = Math.round(allX.reduce((a, b) => a + b, 0) / allX.length);
     const avgY = Math.round(allY.reduce((a, b) => a + b, 0) / allY.length);
 
-    if (isOverviewRevealed) {
-      // Render collective average marker
-      averageMarker.style.left = `${avgX}%`;
-      averageMarker.style.top = `${100 - avgY}%`;
-      averageMarker.classList.add('active');
+    // Update Average banner
+    overviewAverage.textContent = `Focus: ${avgX}% | Social: ${avgY}%`;
 
-      // Update floating dock details with average
-      summaryResults.innerHTML = `
-        <div class="summary-row">
-          <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
-        </div>
-        <div class="summary-row" style="margin-top: 0.15rem;">
-          <span><span class="summary-data-label">Team Avg (${ratingsList.length}):</span><span class="summary-data-value">${avgX}% F / ${avgY}% S</span></span>
-        </div>
+    // Render list items
+    scoresList.innerHTML = '';
+    
+    currentRatings.forEach((pt, index) => {
+      const isUser = (pt.focus_score === selectedX && pt.social_score === selectedY);
+      
+      const item = document.createElement('div');
+      item.className = isUser ? 'score-item user-item' : 'score-item';
+      
+      item.innerHTML = `
+        <span class="score-person">Person ${index + 1}${isUser ? ' (You)' : ''}</span>
+        <span class="score-values">Focus: ${pt.focus_score}% | Social: ${pt.social_score}%</span>
       `;
-    } else {
-      // Hide average marker
-      averageMarker.classList.remove('active');
-
-      // Only show user details in the dock
-      summaryResults.innerHTML = `
-        <div class="summary-row">
-          <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
-        </div>
-      `;
-
-      // Hide teammate coordinates after 2.5 seconds (teaser reveal)
-      setTimeout(() => {
-        if (!isOverviewRevealed) {
-          const markers = teamMarkersContainer.querySelectorAll('.team-marker');
-          markers.forEach(m => m.classList.remove('active'));
-        }
-      }, 2500);
-    }
+      scoresList.appendChild(item);
+    });
   }
 
   // Fallback demo ratings generator
@@ -348,16 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Action Button Submission
   btnAction.addEventListener('click', async () => {
     if (isSubmitted) {
-      if (!isOverviewRevealed) {
-        // REVEAL OVERVIEW
-        isOverviewRevealed = true;
-        localStorage.setItem(`overview_revealed_${sessionId}`, 'true');
-        btnAction.textContent = 'Refresh';
-        syncSessionRatings();
-      } else {
-        // REFRESH DATA
-        syncSessionRatings();
-      }
+      // OPEN OVERVIEW MODAL
+      isOverviewRevealed = true;
+      localStorage.setItem(`overview_revealed_${sessionId}`, 'true');
+      overviewOverlay.style.display = 'flex';
+      populateOverview();
       return;
     }
 
@@ -403,6 +411,15 @@ document.addEventListener('DOMContentLoaded', () => {
       btnAction.removeAttribute('disabled');
       loadSessionState();
     }
+  });
+
+  // Overview Overlay Handlers
+  btnBackToGrid.addEventListener('click', () => {
+    overviewOverlay.style.display = 'none';
+  });
+
+  btnRefreshOverview.addEventListener('click', () => {
+    syncSessionRatings();
   });
 
   // Run initial session check

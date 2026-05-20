@@ -57,9 +57,33 @@
     </div>
   </div>
 
+  <!-- Full-Screen Text Overview Overlay -->
+  <div class="setup-overlay" id="overviewOverlay" style="display: none;">
+    <div class="setup-card overview-card">
+      <h2>Session Results</h2>
+      
+      <!-- Average Banner -->
+      <div class="overview-average-box">
+        <div class="average-title">Team Average</div>
+        <div class="average-values" id="overviewAverage">Focus: --% | Social: --%</div>
+      </div>
+
+      <!-- Anonymous Scores List -->
+      <div class="scores-list-container" id="scoresList">
+        <!-- List items generated dynamically -->
+      </div>
+
+      <!-- Controls -->
+      <div style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" id="btnBackToGrid" style="flex: 1;">Back to Grid</button>
+        <button class="btn" id="btnRefreshOverview" style="flex: 1;">Refresh</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Copy Notification -->
   <div class="toast-alert" id="toastAlert">Link copied to clipboard</div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
