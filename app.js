@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedY = null;
   let isLocked = false;
   let isSubmitted = false;
+  let isOverviewRevealed = false;
 
   // DOM Elements
   const ratingGrid = document.getElementById('ratingGrid');
@@ -94,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load state based on local storage submissions
   function loadSessionState() {
     const localSubmitted = localStorage.getItem(`submitted_${sessionId}`);
+    isOverviewRevealed = localStorage.getItem(`overview_revealed_${sessionId}`) === 'true';
 
     if (localSubmitted === 'true') {
       isSubmitted = true;
@@ -109,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       userMarker.classList.add('active');
 
       gridTooltip.style.opacity = '0';
-      btnAction.textContent = 'Refresh';
+      btnAction.textContent = isOverviewRevealed ? 'Refresh' : 'Show Overview';
       btnAction.removeAttribute('disabled');
 
       // Fetch and overlay collective ratings
@@ -118,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Clean slate for new feedback
       isSubmitted = false;
       isLocked = false;
+      isOverviewRevealed = false;
       selectedX = null;
       selectedY = null;
       userMarker.classList.remove('active');
@@ -190,20 +193,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const avgX = Math.round(allX.reduce((a, b) => a + b, 0) / allX.length);
     const avgY = Math.round(allY.reduce((a, b) => a + b, 0) / allY.length);
 
-    // Render collective average marker
-    averageMarker.style.left = `${avgX}%`;
-    averageMarker.style.top = `${100 - avgY}%`;
-    averageMarker.classList.add('active');
+    if (isOverviewRevealed) {
+      // Render collective average marker
+      averageMarker.style.left = `${avgX}%`;
+      averageMarker.style.top = `${100 - avgY}%`;
+      averageMarker.classList.add('active');
 
-    // Update floating dock details
-    summaryResults.innerHTML = `
-      <div class="summary-row">
-        <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
-      </div>
-      <div class="summary-row" style="margin-top: 0.15rem;">
-        <span><span class="summary-data-label">Team Avg (${ratingsList.length}):</span><span class="summary-data-value">${avgX}% F / ${avgY}% S</span></span>
-      </div>
-    `;
+      // Update floating dock details with average
+      summaryResults.innerHTML = `
+        <div class="summary-row">
+          <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
+        </div>
+        <div class="summary-row" style="margin-top: 0.15rem;">
+          <span><span class="summary-data-label">Team Avg (${ratingsList.length}):</span><span class="summary-data-value">${avgX}% F / ${avgY}% S</span></span>
+        </div>
+      `;
+    } else {
+      // Hide average marker
+      averageMarker.classList.remove('active');
+
+      // Only show user details in the dock
+      summaryResults.innerHTML = `
+        <div class="summary-row">
+          <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
+        </div>
+      `;
+
+      // Hide teammate coordinates after 2.5 seconds (teaser reveal)
+      setTimeout(() => {
+        if (!isOverviewRevealed) {
+          const markers = teamMarkersContainer.querySelectorAll('.team-marker');
+          markers.forEach(m => m.classList.remove('active'));
+        }
+      }, 2500);
+    }
   }
 
   // Fallback demo ratings generator
@@ -215,11 +238,13 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     renderRatings([...mockList, { focus_score: selectedX, social_score: selectedY }]);
     
-    summaryResults.innerHTML += `
-      <div class="summary-row" style="margin-top: 0.15rem; color: #f59e0b; font-size: 0.7rem;">
-        <span>Running in demo mode (credentials unconfigured)</span>
-      </div>
-    `;
+    if (isOverviewRevealed) {
+      summaryResults.innerHTML += `
+        <div class="summary-row" style="margin-top: 0.15rem; color: #f59e0b; font-size: 0.7rem;">
+          <span>Running in demo mode (credentials unconfigured)</span>
+        </div>
+      `;
+    }
   }
 
   // Calculate coordinates from mouse interactions
@@ -323,15 +348,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Action Button Submission
   btnAction.addEventListener('click', async () => {
     if (isSubmitted) {
-      // REFRESH DATA
-      syncSessionRatings();
+      if (!isOverviewRevealed) {
+        // REVEAL OVERVIEW
+        isOverviewRevealed = true;
+        localStorage.setItem(`overview_revealed_${sessionId}`, 'true');
+        btnAction.textContent = 'Refresh';
+        syncSessionRatings();
+      } else {
+        // REFRESH DATA
+        syncSessionRatings();
+      }
       return;
     }
 
     // SUBMIT RATING
     isSubmitted = true;
     gridTooltip.style.opacity = '0';
-    btnAction.textContent = 'Refresh';
+    btnAction.textContent = 'Show Overview';
     btnAction.setAttribute('disabled', 'true'); // Temporarily lock while writing
 
     // Write coordinate point to Supabase
