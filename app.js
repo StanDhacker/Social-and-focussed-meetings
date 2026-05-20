@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderRatings(data || []);
     } catch (err) {
       console.error('Error syncing ratings:', err);
-      summaryResults.textContent = 'Connection error. Click refresh to retry.';
+      summaryResults.textContent = 'Sync failed: ' + (err.message || err);
     }
   }
 
@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncSessionRatings();
       } catch (err) {
         console.error('Submission failed:', err);
-        summaryResults.textContent = 'Failed to submit. Please try again.';
+        summaryResults.textContent = 'Failed to submit: ' + (err.message || err);
         isSubmitted = false;
         btnAction.textContent = 'Submit Rating';
         btnAction.removeAttribute('disabled');
