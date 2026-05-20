@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A shared full-screen interactive meeting reflection tool with Supabase.">
+  <title>Meeting Reflection</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Supabase client JS library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Floating Title -->
+  <header class="floating-header">
+    <h1>Meeting Reflection</h1>
+  </header>
+
+  <!-- Full-Screen Interactive Rating Canvas -->
+  <main class="fullscreen-grid" id="ratingGrid">
+    
+    <!-- Central Crosshair Axes -->
+    <div class="axis-line axis-x"></div>
+    <div class="axis-line axis-y"></div>
+
+    <!-- Edge Labels (Inside the canvas) -->
+    <div class="axis-label label-top">Socially Healthy & Engaging</div>
+    <div class="axis-label label-bottom">Socially Cold & Draining</div>
+    <div class="axis-label label-left">Off-topic & Unfocused</div>
+    <div class="axis-label label-right">Focused & On-topic</div>
+
+    <!-- Coordinates Tooltip -->
+    <div class="grid-tooltip" id="gridTooltip">Focus: 50% | Social: 50%</div>
+
+    <!-- Active Rating Markers -->
+    <div class="user-marker" id="userMarker"></div>
+    <div class="average-marker" id="averageMarker"></div>
+    <div id="teamMarkersContainer"></div>
+
+  </main>
+
+  <!-- Floating Control Dock -->
+  <div class="control-dock" id="controlDock" style="display: none;">
+    <div class="summary-results" id="summaryResults">Click anywhere on the screen to rate the session</div>
+    <div class="control-actions">
+      <button class="btn btn-secondary" id="btnShare">Copy Link</button>
+      <button class="btn" id="btnAction" disabled>Submit Rating</button>
+    </div>
+  </div>
+
+  <!-- Session Setup Overlay (Visible when no session exists in URL) -->
+  <div class="setup-overlay" id="setupOverlay">
+    <div class="setup-card">
+      <h2>Session Reflection</h2>
+      <p>Coordinate team focus and social health. Start a session, invite up to 5 or more participants, and see everyone's ratings plotted in real-time.</p>
+      <button class="btn btn-primary" id="btnCreateSession">Create New Session</button>
+    </div>
+  </div>
+
+  <!-- Toast Copy Notification -->
+  <div class="toast-alert" id="toastAlert">Link copied to clipboard</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
