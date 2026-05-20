@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return null;
     }
     try {
-      return supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (e) {
       console.error("Failed to initialize Supabase client:", e);
       return null;
