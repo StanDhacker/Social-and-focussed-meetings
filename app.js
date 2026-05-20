@@ -12,7 +12,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 document.addEventListener('DOMContentLoaded', () => {
   // State variables
-  let supabase = null;
+  let supabaseClient = null;
   let sessionId = null;
   let selectedX = null;
   let selectedY = null;
@@ -45,14 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return null;
     }
     try {
-      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (e) {
       console.error("Failed to initialize Supabase client:", e);
       return null;
     }
   }
 
-  supabase = initSupabase();
+  supabaseClient = initSupabase();
 
   // Parse session ID from URL
   function checkSession() {
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fetch coordinates from Supabase and render consolidated scatter plot
   async function syncSessionRatings() {
-    if (!supabase) {
+    if (!supabaseClient) {
       // Fallback demo ratings if Supabase is unconfigured
       renderMockRatings();
       return;
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       summaryResults.textContent = 'Fetching team reviews...';
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('meeting_feedback')
         .select('focus_score, social_score')
         .eq('session_id', sessionId);
@@ -335,11 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAction.setAttribute('disabled', 'true'); // Temporarily lock while writing
 
     // Write coordinate point to Supabase
-    if (supabase) {
+    if (supabaseClient) {
       try {
         summaryResults.textContent = 'Saving reflection...';
         
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('meeting_feedback')
           .insert([
             { session_id: sessionId, focus_score: selectedX, social_score: selectedY }
