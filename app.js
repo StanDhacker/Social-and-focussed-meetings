@@ -269,6 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const mockList = [
       { focus_score: Math.max(5, Math.min(95, selectedX + 15)), social_score: Math.max(5, Math.min(95, selectedY - 10)) },
       { focus_score: Math.max(5, Math.min(95, selectedX - 8)), social_score: Math.max(5, Math.min(95, selectedY + 12)) },
+      { focus_score: Math.max(5, Math.min(95, selectedX + 12)), social_score: Math.max(5, Math.min(95, selectedY - 15)) },
+      { focus_score: Math.max(5, Math.min(95, selectedX - 15)), social_score: Math.max(5, Math.min(95, selectedY + 8)) },
       { focus_score: Math.max(5, Math.min(95, selectedX + 5)), social_score: Math.max(5, Math.min(95, selectedY + 5)) }
     ];
     renderRatings([...mockList, { focus_score: selectedX, social_score: selectedY }]);
@@ -469,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recommendationsList = document.getElementById('recommendationsList');
     recommendationsList.innerHTML = '';
 
-    const personalities = ['Extravert', 'Introvert', 'Ambivert'];
+    const personalities = ['Extravert', 'Extravert', 'Ambivert', 'Ambivert', 'Introvert', 'Introvert'];
 
     currentRatings.forEach((pt, index) => {
       const color = TEAM_COLORS[index % TEAM_COLORS.length];
