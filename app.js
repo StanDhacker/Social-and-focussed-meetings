@@ -11,6 +11,16 @@ const SUPABASE_URL = "https://gllveefeunusmlrsuysl.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsbHZlZWZldW51c21scnN1eXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNTExMTIsImV4cCI6MjA5NDgyNzExMn0.vg_2vLgAx3Du16kjTVyqnbrpwIpyTaaHHSI6Tf0eK5s";
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Team Color Palette for Color-Coding
+  const TEAM_COLORS = [
+    '#f87171', // Coral/Red
+    '#34d399', // Emerald/Green
+    '#60a5fa', // Sky Blue
+    '#fbbf24', // Amber/Yellow
+    '#c084fc', // Violet/Lavender
+    '#2dd4bf'  // Teal
+  ];
+
   // State variables
   let supabaseClient = null;
   let sessionId = null;
@@ -41,6 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const scoresList = document.getElementById('scoresList');
   const btnBackToGrid = document.getElementById('btnBackToGrid');
   const btnRefreshOverview = document.getElementById('btnRefreshOverview');
+
+  // Recommendations DOM Elements
+  const recommendationsOverlay = document.getElementById('recommendationsOverlay');
+  const btnGoToRecommendations = document.getElementById('btnGoToRecommendations');
+  const btnBackToOverview = document.getElementById('btnBackToOverview');
 
   // Prevent dock clicks from placing markers on grid
   controlDock.addEventListener('click', (e) => {
@@ -184,10 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const color = TEAM_COLORS[index % TEAM_COLORS.length];
       const marker = document.createElement('div');
       marker.className = 'team-marker';
       marker.style.left = `${pt.focus_score}%`;
       marker.style.top = `${100 - pt.social_score}%`;
+      marker.style.backgroundColor = color;
+      marker.style.boxShadow = `0 0 10px ${color}a0`;
       teamMarkersContainer.appendChild(marker);
 
       setTimeout(() => {
@@ -230,12 +248,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     currentRatings.forEach((pt, index) => {
       const isUser = (pt.focus_score === selectedX && pt.social_score === selectedY);
+      const color = TEAM_COLORS[index % TEAM_COLORS.length];
       
       const item = document.createElement('div');
       item.className = isUser ? 'score-item user-item' : 'score-item';
       
       item.innerHTML = `
-        <span class="score-person">Person ${index + 1}${isUser ? ' (You)' : ''}</span>
+        <span class="score-person">
+          <span class="score-color-dot" style="color: ${color}; background-color: ${color};"></span>
+          Person ${index + 1}${isUser ? ' (You)' : ''}
+        </span>
         <span class="score-values">Focus: ${pt.focus_score}% | Social: ${pt.social_score}%</span>
       `;
       scoresList.appendChild(item);
@@ -413,6 +435,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Populate Recommendations Screen Overlay
+  function populateRecommendations() {
+    if (currentRatings.length === 0) return;
+
+    // Calculate statistical averages
+    const allX = currentRatings.map(r => r.focus_score);
+    const allY = currentRatings.map(r => r.social_score);
+
+    const avgX = Math.round(allX.reduce((a, b) => a + b, 0) / allX.length);
+    const avgY = Math.round(allY.reduce((a, b) => a + b, 0) / allY.length);
+
+    // Classify Meeting State Quadrant
+    let meetingStateKey = 'low_focus_low_social';
+    if (avgX >= 50 && avgY >= 50) {
+      meetingStateKey = 'high_focus_high_social';
+    } else if (avgX < 50 && avgY >= 50) {
+      meetingStateKey = 'low_focus_high_social';
+    } else if (avgX >= 50 && avgY < 50) {
+      meetingStateKey = 'high_focus_low_social';
+    }
+
+    const stateConfig = window.MEETING_RECOMMENDATIONS[meetingStateKey];
+
+    // Update State Header UI
+    const recMeetingStateTitle = document.getElementById('recMeetingStateTitle');
+    const recMeetingStateDesc = document.getElementById('recMeetingStateDesc');
+    
+    recMeetingStateTitle.textContent = `Meeting State: ${stateConfig.title} (Focus: ${avgX}% | Social: ${avgY}%)`;
+    recMeetingStateDesc.textContent = stateConfig.description;
+
+    // Render recommendations for each person
+    const recommendationsList = document.getElementById('recommendationsList');
+    recommendationsList.innerHTML = '';
+
+    const personalities = ['Extravert', 'Introvert', 'Ambivert'];
+
+    currentRatings.forEach((pt, index) => {
+      const color = TEAM_COLORS[index % TEAM_COLORS.length];
+      const personality = personalities[index % personalities.length];
+      const rec = stateConfig[personality.toLowerCase()];
+
+      const item = document.createElement('div');
+      item.className = 'recommendation-item';
+
+      // SVG Icon template based on personality nature
+      let svgIcon = '';
+      if (personality === 'Extravert') {
+        svgIcon = `
+          <svg class="personality-icon extravert" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+        `;
+      } else if (personality === 'Introvert') {
+        svgIcon = `
+          <svg class="personality-icon introvert" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        `;
+      } else {
+        // Ambivert
+        svgIcon = `
+          <svg class="personality-icon ambivert" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/>
+            <path d="M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/>
+          </svg>
+        `;
+      }
+
+      item.innerHTML = `
+        <div class="recommendation-header">
+          <div class="rec-avatar" style="background-color: ${color};">P${index + 1}</div>
+          <div class="rec-person-info">
+            <span class="rec-person-name">Person ${index + 1}</span>
+            <span class="rec-person-nature">${personality} Nature</span>
+          </div>
+          <div class="personality-badge-container">
+            ${svgIcon}
+            <span class="personality-badge-text">${personality}</span>
+          </div>
+        </div>
+        <div class="recommendation-body">
+          <div class="rec-section">
+            <span class="rec-label">What could help:</span>
+            <span class="rec-action-text">${rec.action}</span>
+          </div>
+          <div class="rec-section">
+            <span class="rec-label">Why it helps the group:</span>
+            <span class="rec-why-text">${rec.rationale}</span>
+          </div>
+        </div>
+      `;
+
+      recommendationsList.appendChild(item);
+    });
+  }
+
   // Overview Overlay Handlers
   btnBackToGrid.addEventListener('click', () => {
     overviewOverlay.style.display = 'none';
@@ -420,6 +540,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnRefreshOverview.addEventListener('click', () => {
     syncSessionRatings();
+  });
+
+  // Navigation Handlers
+  btnGoToRecommendations.addEventListener('click', () => {
+    overviewOverlay.style.display = 'none';
+    recommendationsOverlay.style.display = 'flex';
+    populateRecommendations();
+  });
+
+  btnBackToOverview.addEventListener('click', () => {
+    recommendationsOverlay.style.display = 'none';
+    overviewOverlay.style.display = 'flex';
   });
 
   // Run initial session check
