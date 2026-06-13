@@ -7,8 +7,8 @@
 // Supabase Configuration
 // Paste your Supabase Project credentials below.
 // --------------------------------------------------------------------------
-const SUPABASE_URL = "https://gllveefeunusmlrsuysl.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsbHZlZWZldW51c21scnN1eXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNTExMTIsImV4cCI6MjA5NDgyNzExMn0.vg_2vLgAx3Du16kjTVyqnbrpwIpyTaaHHSI6Tf0eK5s";
+const SUPABASE_URL = "https://xksfjsejecbrupctlntc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrc2Zqc2VqZWNicnVwY3RsbnRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMjgyMDcsImV4cCI6MjA5NjkwNDIwN30.2F2HvYDoogXd2Fllnuezus2wAqKwu6Ea-sTWWiFZ9xc";
 
 document.addEventListener('DOMContentLoaded', () => {
   // Team Color Palette for Color-Coding
