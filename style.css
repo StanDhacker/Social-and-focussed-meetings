@@ -143,7 +143,7 @@ body {
 }
 
 .label-bottom {
-  bottom: 1.5rem;
+  bottom: 7.5rem;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -380,6 +380,10 @@ body {
 
   .label-right {
     right: 1.2rem;
+  }
+
+  .label-bottom {
+    bottom: 9.5rem;
   }
   
   .control-dock {
