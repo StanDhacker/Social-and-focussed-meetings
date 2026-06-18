@@ -85,7 +85,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  cursor: crosshair;
+  cursor: none;
   background-image: 
     linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
@@ -923,5 +923,41 @@ body {
   border-radius: 8px;
   font-size: 0.85rem;
   box-shadow: none;
+}
+
+/* Custom Big Cross Cursor */
+.custom-cursor {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  opacity: 0;
+  mix-blend-mode: difference;
+  transition: opacity 0.15s ease;
+}
+
+.custom-cursor::before,
+.custom-cursor::after {
+  content: '';
+  position: absolute;
+  background: #ffffff;
+}
+
+/* Horizontal line of the cross */
+.custom-cursor::before {
+  top: 23px;
+  left: 0;
+  width: 48px;
+  height: 2px;
+}
+
+/* Vertical line of the cross */
+.custom-cursor::after {
+  top: 0;
+  left: 23px;
+  width: 2px;
+  height: 48px;
 }
 

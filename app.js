@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // DOM Elements
   const ratingGrid = document.getElementById('ratingGrid');
-  const gridTooltip = document.getElementById('gridTooltip');
+  const customCursor = document.getElementById('customCursor');
   const userMarker = document.getElementById('userMarker');
   const averageMarker = document.getElementById('averageMarker');
   const teamMarkersContainer = document.getElementById('teamMarkersContainer');
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
       userMarker.style.top = `${100 - selectedY}%`;
       userMarker.classList.add('active');
 
-      gridTooltip.style.opacity = '0';
+      customCursor.style.opacity = '0';
       btnAction.textContent = 'Show Overview';
       btnAction.removeAttribute('disabled');
 
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnAction.textContent = 'Submit Rating';
       btnAction.setAttribute('disabled', 'true');
       summaryResults.textContent = 'Click anywhere on the screen to rate the session';
-      gridTooltip.style.opacity = '0';
+      customCursor.style.opacity = '0';
     }
   }
 
@@ -321,43 +321,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Hover events
   ratingGrid.addEventListener('mousemove', (e) => {
-    if (isSubmitted) return;
+    if (isSubmitted) {
+      customCursor.style.opacity = '0';
+      ratingGrid.style.cursor = 'default';
+      return;
+    }
+    ratingGrid.style.cursor = 'none';
 
     const coords = getCoordinates(e);
 
-    gridTooltip.style.opacity = '1';
-    gridTooltip.style.left = `${coords.xPercent}%`;
-    gridTooltip.style.top = `${coords.yPercent}%`;
-    
-    if (coords.yPercent < 15) {
-      gridTooltip.classList.add('tooltip-bottom');
-    } else {
-      gridTooltip.classList.remove('tooltip-bottom');
-    }
-    
-    if (!isLocked) {
-      gridTooltip.textContent = getVibeLabel(coords.focus, coords.social);
-    }
+    customCursor.style.opacity = '1';
+    customCursor.style.left = `${coords.xPercent}%`;
+    customCursor.style.top = `${coords.yPercent}%`;
   });
 
   // Mouse leave
   ratingGrid.addEventListener('mouseleave', () => {
-    if (isSubmitted) return;
-    
-    if (!isLocked) {
-      gridTooltip.style.opacity = '0';
-    } else {
-      gridTooltip.style.left = userMarker.style.left;
-      gridTooltip.style.top = userMarker.style.top;
-      gridTooltip.textContent = getVibeLabel(selectedX, selectedY);
-      
-      const yPct = parseFloat(userMarker.style.top);
-      if (yPct < 15) {
-        gridTooltip.classList.add('tooltip-bottom');
-      } else {
-        gridTooltip.classList.remove('tooltip-bottom');
-      }
-    }
+    customCursor.style.opacity = '0';
   });
 
   // Coordinate Selection Click
@@ -373,18 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userMarker.style.left = `${coords.xPercent}%`;
     userMarker.style.top = `${coords.yPercent}%`;
     userMarker.classList.add('active');
-
-    // Freeze tooltip location
-    gridTooltip.style.left = `${coords.xPercent}%`;
-    gridTooltip.style.top = `${coords.yPercent}%`;
-    gridTooltip.textContent = getVibeLabel(selectedX, selectedY);
-    gridTooltip.style.opacity = '1';
-
-    if (coords.yPercent < 15) {
-      gridTooltip.classList.add('tooltip-bottom');
-    } else {
-      gridTooltip.classList.remove('tooltip-bottom');
-    }
 
     // Display selected coordinates in control dock
     summaryResults.innerHTML = `
@@ -409,7 +377,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // SUBMIT RATING
     isSubmitted = true;
-    gridTooltip.style.opacity = '0';
+    customCursor.style.opacity = '0';
+    ratingGrid.style.cursor = 'default';
     btnAction.textContent = 'Show Overview';
     btnAction.setAttribute('disabled', 'true'); // Temporarily lock while writing
 
