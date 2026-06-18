@@ -791,13 +791,15 @@ body {
    Group Chatbox / Discussion Screen Styling
    ========================================================================== */
 .chatbox-card {
-  max-width: 480px;
+  max-width: 640px;
+  width: 95%;
 }
 
 /* Message Scroll Container */
 .chat-messages-container {
   width: 100%;
-  height: 260px;
+  height: 420px;
+  max-height: 55vh;
   overflow-y: auto;
   margin-bottom: 0.5rem;
   padding-right: 0.5rem;
