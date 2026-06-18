@@ -475,12 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const stateConfig = window.MEETING_RECOMMENDATIONS[meetingStateKey];
 
-    // Update State Header UI
-    const recMeetingStateTitle = document.getElementById('recMeetingStateTitle');
-    const recMeetingStateDesc = document.getElementById('recMeetingStateDesc');
-    
-    recMeetingStateTitle.textContent = `Team Vibe: ${stateConfig.title}`;
-    recMeetingStateDesc.textContent = stateConfig.description;
+
 
     // Render recommendations for each person
     const recommendationsList = document.getElementById('recommendationsList');
