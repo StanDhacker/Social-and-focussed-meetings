@@ -274,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="score-color-dot" style="color: ${color}; background-color: ${color};"></span>
           Person ${index + 1}${isUser ? ' (You)' : ''}
         </span>
-        <span class="score-values">${getVibeLabel(pt.focus_score, pt.social_score)}</span>
       `;
       scoresList.appendChild(item);
     });
