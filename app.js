@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSubmitted = false;
   let isOverviewRevealed = false;
   let currentRatings = [];
+  let currentChatMessages = [];
+  let chatInterval = null;
 
   // DOM Elements
   const ratingGrid = document.getElementById('ratingGrid');
@@ -63,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Overview DOM Elements
   const overviewOverlay = document.getElementById('overviewOverlay');
-  const overviewAverage = document.getElementById('overviewAverage');
   const scoresList = document.getElementById('scoresList');
   const btnBackToGrid = document.getElementById('btnBackToGrid');
   const btnRefreshOverview = document.getElementById('btnRefreshOverview');
@@ -72,6 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const recommendationsOverlay = document.getElementById('recommendationsOverlay');
   const btnGoToRecommendations = document.getElementById('btnGoToRecommendations');
   const btnBackToOverview = document.getElementById('btnBackToOverview');
+
+  // Chatbox DOM Elements
+  const chatboxOverlay = document.getElementById('chatboxOverlay');
+  const btnGoToChatbox = document.getElementById('btnGoToChatbox');
+  const btnBackToRecommendations = document.getElementById('btnBackToRecommendations');
+  const btnRefreshChat = document.getElementById('btnRefreshChat');
+  const btnSendChat = document.getElementById('btnSendChat');
+  const chatInput = document.getElementById('chatInput');
+  const chatMessages = document.getElementById('chatMessages');
 
   // Prevent dock clicks from placing markers on grid
   controlDock.addEventListener('click', (e) => {
@@ -248,16 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Populate Text-based Overview Overlay Panel
   function populateOverview() {
     if (currentRatings.length === 0) return;
-
-    // Calculate statistical averages
-    const allX = currentRatings.map(r => r.focus_score);
-    const allY = currentRatings.map(r => r.social_score);
-
-    const avgX = Math.round(allX.reduce((a, b) => a + b, 0) / allX.length);
-    const avgY = Math.round(allY.reduce((a, b) => a + b, 0) / allY.length);
-
-    // Update Average banner
-    overviewAverage.textContent = getVibeLabel(avgX, avgY);
 
     // Render list items
     scoresList.innerHTML = '';
@@ -563,6 +563,162 @@ document.addEventListener('DOMContentLoaded', () => {
   btnBackToOverview.addEventListener('click', () => {
     recommendationsOverlay.style.display = 'none';
     overviewOverlay.style.display = 'flex';
+  });
+
+  // Seed data for mock/demo discussion comments
+  const MOCK_CHAT_SEEDS = [
+    { person_index: 1, message: "I think the recommendation to redirect stories makes sense, I definitely got a bit carried away today!", created_at: new Date(Date.now() - 300000).toISOString() },
+    { person_index: 4, message: "I like the idea of a 2-minute silent writing check. Sometimes it's hard to find a gap to speak when the discussion gets fast.", created_at: new Date(Date.now() - 180000).toISOString() },
+    { person_index: 2, message: "I'll try to bridge the communication styles more. Overall I felt the meeting was productive but could be shorter.", created_at: new Date(Date.now() - 60000).toISOString() }
+  ];
+
+  // Determine client person index dynamically based on their coordinates in ratings list
+  function getUserPersonIndex() {
+    if (!currentRatings || currentRatings.length === 0) return 0;
+    const idx = currentRatings.findIndex(pt => pt.focus_score === selectedX && pt.social_score === selectedY);
+    return idx >= 0 ? idx : 0;
+  }
+
+  // Fetch chat comments from Supabase or load seeds if in demo mode
+  async function syncChatMessages() {
+    if (!supabaseClient) {
+      if (currentChatMessages.length === 0) {
+        currentChatMessages = [...MOCK_CHAT_SEEDS];
+      }
+      populateChatMessages();
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('meeting_chat')
+        .select('person_index, message, created_at')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      currentChatMessages = data || [];
+      populateChatMessages();
+    } catch (err) {
+      console.error('Error syncing chat:', err);
+    }
+  }
+
+  // Insert a new anonymous chat message record
+  async function sendChatMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    chatInput.value = '';
+    const myPersonIndex = getUserPersonIndex();
+
+    if (!supabaseClient) {
+      currentChatMessages.push({
+        person_index: myPersonIndex,
+        message: text,
+        created_at: new Date().toISOString()
+      });
+      populateChatMessages();
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('meeting_chat')
+        .insert([
+          { session_id: sessionId, person_index: myPersonIndex, message: text }
+        ]);
+
+      if (error) throw error;
+
+      syncChatMessages();
+    } catch (err) {
+      console.error('Error sending chat:', err);
+    }
+  }
+
+  // Render chat list with colored avatars
+  function populateChatMessages() {
+    chatMessages.innerHTML = '';
+    const myPersonIndex = getUserPersonIndex();
+
+    if (currentChatMessages.length === 0) {
+      const emptyMsg = document.createElement('div');
+      emptyMsg.style.textAlign = 'center';
+      emptyMsg.style.color = 'var(--text-muted)';
+      emptyMsg.style.fontSize = '0.8rem';
+      emptyMsg.style.marginTop = '2rem';
+      emptyMsg.textContent = 'No messages yet. Be the first to share your thoughts!';
+      chatMessages.appendChild(emptyMsg);
+      return;
+    }
+
+    currentChatMessages.forEach(msg => {
+      const isMe = msg.person_index === myPersonIndex;
+      const color = TEAM_COLORS[msg.person_index % TEAM_COLORS.length];
+      
+      const item = document.createElement('div');
+      item.className = isMe ? 'chat-message-item own-message' : 'chat-message-item';
+
+      let timeText = 'Just now';
+      if (msg.created_at) {
+        const date = new Date(msg.created_at);
+        const mins = date.getMinutes().toString().padStart(2, '0');
+        const hrs = date.getHours().toString().padStart(2, '0');
+        timeText = `${hrs}:${mins}`;
+      }
+
+      item.innerHTML = `
+        <div class="chat-avatar" style="background-color: ${color};">P${msg.person_index + 1}</div>
+        <div class="chat-msg-content">
+          <div class="chat-msg-header">
+            <span class="chat-msg-sender" style="color: ${color};">Person ${msg.person_index + 1}${isMe ? ' (You)' : ''}</span>
+            <span class="chat-msg-time">${timeText}</span>
+          </div>
+          <span class="chat-msg-text">${msg.message}</span>
+        </div>
+      `;
+
+      chatMessages.appendChild(item);
+    });
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Transition to Chatbox screen
+  btnGoToChatbox.addEventListener('click', () => {
+    recommendationsOverlay.style.display = 'none';
+    chatboxOverlay.style.display = 'flex';
+    syncChatMessages();
+    
+    if (chatInterval) clearInterval(chatInterval);
+    chatInterval = setInterval(syncChatMessages, 5000);
+  });
+
+  // Transition back from Chatbox screen
+  btnBackToRecommendations.addEventListener('click', () => {
+    chatboxOverlay.style.display = 'none';
+    recommendationsOverlay.style.display = 'flex';
+    
+    if (chatInterval) {
+      clearInterval(chatInterval);
+      chatInterval = null;
+    }
+  });
+
+  btnRefreshChat.addEventListener('click', () => {
+    syncChatMessages();
+  });
+
+  btnSendChat.addEventListener('click', () => {
+    sendChatMessage();
+  });
+
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendChatMessage();
+    }
   });
 
   // Run initial session check

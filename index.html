@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A shared full-screen interactive meeting reflection tool with Supabase.">
   <title>Meeting Reflection</title>
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
   <!-- Supabase client JS library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -62,11 +62,7 @@
     <div class="setup-card overview-card">
       <h2>Session Results</h2>
       
-      <!-- Average Banner -->
-      <div class="overview-average-box">
-        <div class="average-title">Team Average</div>
-        <div class="average-values" id="overviewAverage">Calculating Vibe...</div>
-      </div>
+
 
       <!-- Anonymous Scores List -->
       <div class="scores-list-container" id="scoresList">
@@ -97,8 +93,34 @@
       </div>
 
       <!-- Controls -->
-      <div style="width: 100%; margin-top: 1.5rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%; margin-top: 1.5rem;">
+        <button class="btn" id="btnGoToChatbox" style="width: 100%;">Group Discussion</button>
         <button class="btn btn-secondary" id="btnBackToOverview" style="width: 100%;">Back to Overview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-Screen Group Chatbox Overlay -->
+  <div class="setup-overlay" id="chatboxOverlay" style="display: none;">
+    <div class="setup-card chatbox-card">
+      <h2>Group Discussion</h2>
+      <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">Share your thoughts on the recommendations or how you feel about the group's dynamics.</p>
+      
+      <!-- Chat message scroll area -->
+      <div class="chat-messages-container" id="chatMessages">
+        <!-- Messages loaded dynamically -->
+      </div>
+
+      <!-- Chat input field form -->
+      <div class="chat-input-area">
+        <input type="text" class="chat-text-input" id="chatInput" placeholder="Type feedback anonymously..." autocomplete="off">
+        <button class="btn chat-send-btn" id="btnSendChat">Send</button>
+      </div>
+
+      <!-- Controls -->
+      <div style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" id="btnBackToRecommendations" style="flex: 1;">Back to Recommendations</button>
+        <button class="btn btn-secondary" id="btnRefreshChat" style="flex: 1;">Refresh</button>
       </div>
     </div>
   </div>
@@ -106,7 +128,7 @@
   <!-- Toast Copy Notification -->
   <div class="toast-alert" id="toastAlert">Link copied to clipboard</div>
 
-  <script src="recommendations.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="recommendations.js?v=12"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
