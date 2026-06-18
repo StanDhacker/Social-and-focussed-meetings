@@ -21,6 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
     '#2dd4bf'  // Teal
   ];
 
+  // Map focus and social scores to visual, feeling-based descriptions
+  function getVibeLabel(focus, social) {
+    if (focus === null || social === null) return "Select your vibe";
+    const isFocused = focus >= 50;
+    const isSocial = social >= 50;
+    if (isFocused && isSocial) {
+      return "Focused & Socially Engaging";
+    } else if (!isFocused && isSocial) {
+      return "Off-topic & Socially Engaging";
+    } else if (isFocused && !isSocial) {
+      return "Focused & Socially Cold";
+    } else {
+      return "Off-topic & Socially Cold";
+    }
+  }
+
   // State variables
   let supabaseClient = null;
   let sessionId = null;
@@ -219,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only show user details in the dock
     summaryResults.innerHTML = `
       <div class="summary-row">
-        <span><span class="summary-data-label">You:</span><span class="summary-data-value">${selectedX}% F / ${selectedY}% S</span></span>
+        <span><span class="summary-data-label">Your Vibe:</span><span class="summary-data-value">${getVibeLabel(selectedX, selectedY)}</span></span>
       </div>
     `;
 
@@ -241,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const avgY = Math.round(allY.reduce((a, b) => a + b, 0) / allY.length);
 
     // Update Average banner
-    overviewAverage.textContent = `Focus: ${avgX}% | Social: ${avgY}%`;
+    overviewAverage.textContent = getVibeLabel(avgX, avgY);
 
     // Render list items
     scoresList.innerHTML = '';
@@ -258,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="score-color-dot" style="color: ${color}; background-color: ${color};"></span>
           Person ${index + 1}${isUser ? ' (You)' : ''}
         </span>
-        <span class="score-values">Focus: ${pt.focus_score}% | Social: ${pt.social_score}%</span>
+        <span class="score-values">${getVibeLabel(pt.focus_score, pt.social_score)}</span>
       `;
       scoresList.appendChild(item);
     });
@@ -321,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (!isLocked) {
-      gridTooltip.textContent = `Focus: ${coords.focus}% | Social: ${coords.social}%`;
+      gridTooltip.textContent = getVibeLabel(coords.focus, coords.social);
     }
   });
 
@@ -334,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       gridTooltip.style.left = userMarker.style.left;
       gridTooltip.style.top = userMarker.style.top;
-      gridTooltip.textContent = `Focus: ${selectedX}% | Social: ${selectedY}%`;
+      gridTooltip.textContent = getVibeLabel(selectedX, selectedY);
       
       const yPct = parseFloat(userMarker.style.top);
       if (yPct < 15) {
@@ -362,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Freeze tooltip location
     gridTooltip.style.left = `${coords.xPercent}%`;
     gridTooltip.style.top = `${coords.yPercent}%`;
-    gridTooltip.textContent = `Focus: ${selectedX}% | Social: ${selectedY}%`;
+    gridTooltip.textContent = getVibeLabel(selectedX, selectedY);
     gridTooltip.style.opacity = '1';
 
     if (coords.yPercent < 15) {
@@ -374,8 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display selected coordinates in control dock
     summaryResults.innerHTML = `
       <div class="summary-row">
-        <span><span class="summary-data-label">Focus:</span><span class="summary-data-value">${selectedX}%</span></span>
-        <span><span class="summary-data-label">Social:</span><span class="summary-data-value">${selectedY}%</span></span>
+        <span><span class="summary-data-label">Selected Vibe:</span><span class="summary-data-value">${getVibeLabel(selectedX, selectedY)}</span></span>
       </div>
     `;
 
@@ -464,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recMeetingStateTitle = document.getElementById('recMeetingStateTitle');
     const recMeetingStateDesc = document.getElementById('recMeetingStateDesc');
     
-    recMeetingStateTitle.textContent = `Meeting State: ${stateConfig.title} (Focus: ${avgX}% | Social: ${avgY}%)`;
+    recMeetingStateTitle.textContent = `Team Vibe: ${stateConfig.title}`;
     recMeetingStateDesc.textContent = stateConfig.description;
 
     // Render recommendations for each person
